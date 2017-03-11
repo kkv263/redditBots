@@ -1,6 +1,7 @@
 from praw.models import MoreComments
 from amazon.api import AmazonAPI
     
+import collections  
 import os
 import praw
 import time
@@ -19,8 +20,9 @@ AWS_ASSOCIATE_TAG = os.environ['AWS_ASSOCIATE_TAG']
 regex = re.compile('/([A-Z0-9]{10})')
 urlRegex = re.compile('https?://www.amazon.com/([\\w-]+/)?(dp|gp/product|exec/obidos/asin)/(\\w+/)?(\\w{10})')
 
-# Configuring account for bot
 def main():
+
+    # Configuring account for bot
     reddit = praw.Reddit(client_id=REDDIT_CLIENT,
                      client_secret=REDDIT_SECRET,
                      password=REDDIT_PASS,
@@ -28,38 +30,45 @@ def main():
                      username=REDDIT_USER)
 
     subreddit = reddit.subreddit(subredditName)
-    
-    print(reddit.user.me())
-    print(subreddit)
-   
-    
+
+    # Streams each submission in subreddit
     for submission in subreddit.stream.submissions():
-        print(submission.title)
+        print('Title - ' + submission.title)
         submission.comments.replace_more(limit=0)
-        searchKeyword(submission.comments.list())
-        #time.sleep(2)
+        searchForLink(submission.comments.list())
+        #time.sleep(60)
     
 
-def searchKeyword (comments):
-    print('Searching...')
+"""
+Cycles through each comment in the submission and tries
+to find an amazon url in a comment. We use regular
+expressions to extract the ASIN number.
+"""
+def searchForLink (comments):
     for comment in comments:
         commentBody = comment.body
         if (re.search(urlRegex,commentBody)):
-            itemLookup(re.search(regex,commentBody).group(1))
-
-
+            reply(itemLookup(re.search(regex,commentBody).group(1)))
+            
+"""
+Looks up the amazon item according to ASIN
+"""
 def itemLookup(asin):
     amazon = AmazonAPI(AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_ASSOCIATE_TAG) 
 
     item = amazon.lookup(ItemId=asin)
 
-    print(item.title)
-    print(item.price_and_currency)
-    print(item.offer_url)
+    ProductInfo = collections.namedtuple('ProductInfo',
+                                         ['title','amount','type'])
+    return ProductInfo(item.title,item.price_and_currency[0],
+                    item.price_and_currency[1])
+    
+"""
+Generates a reply to the comment with information about
+the amazon product
+"""
+def reply(p):
+    print(p.title + ' ' + str(p.amount) + ' ' + p.type)
 
-"""
-TODO: def reply(title,price)
-just basically replies to the comment with amazon information 
-"""
 if __name__ == '__main__':
     main()
