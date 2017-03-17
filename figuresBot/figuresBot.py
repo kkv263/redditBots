@@ -1,22 +1,11 @@
 from praw.models import MoreComments
 from amazon.api import AmazonAPI
-    
-import collections  
-import os
-import praw
-import time
-import re
+from config import *
+
+import collections, praw, time, re 
 
 # Variables
 subredditName = 'test'
-REDDIT_USER = os.environ['REDDIT_USER']
-REDDIT_PASS = os.environ['REDDIT_PASS']
-REDDIT_SECRET = os.environ['REDDIT_SECRET']
-REDDIT_CLIENT = os.environ['REDDIT_CLIENT']
-AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
-AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
-AWS_ASSOCIATE_TAG = os.environ['AWS_ASSOCIATE_TAG'] 
-
 regex = re.compile('/([A-Z0-9]{10})')
 urlRegex = re.compile('https?://www.amazon.com/([\\w-]+/)?(dp|gp/product|exec/obidos/asin)/(\\w+/)?(\\w{10})')
 
