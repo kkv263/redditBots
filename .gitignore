@@ -9,3 +9,4 @@ config.py
 .Trashes
 ehthumbs.db
 Thumbs.db
+/venv
